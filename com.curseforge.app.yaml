@@ -1,0 +1,49 @@
+app-id: com.curseforge.app
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: /app/CurseForge
+finish-args:
+  - --filesystem=xdg-config/CurseForge:create
+  - --filesystem=xdg-data/CurseForge:create
+  - --filesystem=xdg-cache/CurseForge:create
+  - --nofilesystem=host
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=dri
+  - --socket=session-bus
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - name: curseforge
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/home/Documents
+      - cp -r * /app/
+      - rm /app/chrome-sandbox
+      - chmod +x /app/CurseForge
+    sources:
+      - type: dir
+        path: files
+      - type: script
+        dest-filename: CurseForge
+        commands:
+        - |
+          #!/bin/sh
+          echo "CurseForge script starting"
+          mkdir -p "$HOME/Documents"
+
+          mkdir -p "/var/data/CurseForge/minecraft"
+          if [ ! -e "$HOME/.minecraft" ]; then
+            ln -s "/var/data/CurseForge/minecraft" "$HOME/.minecraft"
+          fi
+
+          mkdir -p "/var/data/CurseForge/curseforge"
+          if [ ! -e "$HOME/Documents/curseforge" ]; then
+            ln -s "/var/data/CurseForge/curseforge" "$HOME/Documents/curseforge"
+          fi
+
+          exec /app/curseforge --no-sandbox "$@"
+

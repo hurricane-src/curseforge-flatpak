@@ -1,0 +1,43 @@
+#!/bin/sh
+
+DEB=curseforge-latest-linux.deb
+URI="https://curseforge.overwolf.com/downloads/$DEB"
+
+doe()
+{
+  if [ $? -ne 0 ]; then
+    echo "ERROR: '$@'"
+    exit 1
+  fi
+}
+
+if [ ! -d files ]; then
+  if [ ! -f $DEB ]; then
+    which dpkg-deb
+    doe "dpkg-deb not found in path"
+
+    which wget
+    doe "wget not found in path"
+
+    wget "$URI"
+    doe "downloading $URI failed"
+  fi
+
+  dpkg-deb -x "$DEB" files
+  doe "unpacking $DEB failed"
+fi
+
+if [ -d files/opt/CurseForge ]; then
+  mv files/opt/CurseForge/* files
+  rm -rf files/opt
+  rm -rf files/usr
+fi
+
+if [ -f files/curseforge ]; then
+  echo "CurseForge appears to have been prepared properly"
+else
+  echo "CurseForge doesn't appear to be properly installed"
+  echo "Delete the 'files' directory"
+  echo "If you've already tried that delete the $DEB file too"
+fi
+
